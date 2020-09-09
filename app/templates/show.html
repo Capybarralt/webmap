@@ -1,0 +1,171 @@
+{# templates/show.html #}
+<html>
+    <head>
+        <title>Class redacting</title>
+        {# Import JQuery #}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+        <script>
+            //Adjust the indices of form fields when removing items.
+            function adjustIndices(removedIndex) {
+                var $forms = $('.subform');
+
+                $forms.each(function(i) {
+                    var $form = $(this);
+                    var index = parseInt($form.data('index'));
+                    var newIndex = index - 1;
+
+                    if (index < removedIndex) {
+                        // Skip
+                        return true;
+                    }
+
+                    // Change ID in form itself
+                    $form.attr('id', $form.attr('id').replace(index, newIndex));
+                    $form.data('index', newIndex);
+                    // Change IDs in form fields
+                    $form.find('input').each(function(j) {
+                        var $item = $(this);
+                        $item.attr('id', $item.attr('id').replace(index, newIndex));
+                        $item.attr('name', $item.attr('name').replace(index, newIndex));
+                    });
+                    $form.find('select').each(function(idx) {
+                        var $item = $(this);
+                        $item.attr('id', $item.attr('id').replace(index, newIndex));
+                        $item.attr('name', $item.attr('name').replace(index, newIndex));
+                    });
+                    $form.find('label').each(function(idx) {
+                        var $item = $(this);
+                        $item.attr('for', $item.attr('for').replace(index, newIndex));
+                    });
+                });
+            }
+
+            //Remove a form.
+            function removeForm() {
+                var $removedForm = $(this).closest('.subform');
+                var removedIndex = parseInt($removedForm.data('index'));
+                $removedForm.remove();
+                // Update indices
+                adjustIndices(removedIndex);
+            }
+
+            //Add a new form.
+            function addForm(i) {
+                var $templateForm = $('#field-_-form');
+                if (!$templateForm) {
+                    console.log('[ERROR] Cannot find template');
+                    return;
+                }
+                // Get Last index
+                var $lastForm = $('.subform').last();
+                var newIndex = 0;
+                if ($lastForm.length > 0) {
+                    newIndex = parseInt($lastForm.data('index')) + 1;
+                }
+                // Maximum of 20 subforms
+                if (newIndex > 20) {
+                    console.log('[WARNING] Reached maximum number of elements');
+                    return;
+                }
+
+                // Add elements
+                var $newForm = $templateForm.clone();
+                $newForm.attr('id', $newForm.attr('id').replace('_', newIndex));
+                $newForm.data('index', newIndex);
+                $newForm.find('input').each(function(idx) {
+                    var $item = $(this);
+                    $item.attr('id', $item.attr('id').replace('_', newIndex));
+                    $item.attr('name', $item.attr('name').replace('_', newIndex));
+                    $item.val(i[1])
+                });
+                $newForm.find('select').each(function(idx) {
+                    var $item = $(this);
+                    $item.attr('id', $item.attr('id').replace('_', newIndex));
+                    $item.attr('name', $item.attr('name').replace('_', newIndex));
+                    $item.find(`option[value=${i[0]}]`).prop('selected', true);
+                });
+                $newForm.find('label').each(function(idx) {
+                    var $item = $(this);
+                    $item.attr('for', $item.attr('for').replace('_', newIndex));
+                });
+
+                // Append
+                $('#subforms-container').append($newForm);
+                $newForm.addClass('subform');
+                $newForm.removeClass('is-hidden');
+                $newForm.find('.remove').click(removeForm);
+            }
+
+            $(document).ready(function() {
+                $('#add').click(addForm);
+                $('.remove').click(removeForm);
+                $('#name').val('{{classifier_example.name}}')
+                // Add fields for class from database
+                d = '{{d}}'
+                d = d.replace(/&#34;/gi, '"')
+                d = JSON.parse(d)
+                var $lastForm = $('.subform').last();
+                if ($lastForm.length == 0) {
+                    $.each(d, function(index, value) {
+                        addForm(value)
+                    })
+                }
+            });
+        </script>
+
+        <style>
+            .is-hidden {
+                display: none;
+            }
+        </style>
+
+    </head>
+    <body>
+        <a href="{{ url_for('classification') }}">Вернуться к классификатору</a>
+
+        <a id="add" href="#">Добавить поле</a>
+
+        {# Show all subforms #}
+        <form id="field-form" action="" method="POST" role="form">
+            {{ form.hidden_tag() }}
+            {{ form.name.label }}
+            {{ form.name(id = 'name') }}
+            <div id="subforms-container">
+                {% for subform in form.fields %}
+                    <div id="field-{{ loop.index0 }}-form" class="subform" data-index="{{ loop.index0 }}">
+                        {{ subform.field_name.label }}
+                        {{ subform.field_name }}
+
+                        {{ subform.field_type.label }}
+                        {{ subform.field_type}}
+
+                        <a class="remove" href="#">Удалить</a>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <button type="submit">Сохранить изменеия</button>
+        </form>
+
+        {% if form.errors %}
+            {{ form.errors }}
+        {% endif %}
+
+        {# Form template #}
+        <div id="field-_-form" class="is-hidden" data-index="_">
+
+            <label for="fields-_-field_name">Название поля</label>
+            <input id="fields-_-field_name" name="fields-_-field_name" type="text" value="">
+
+            <label for="fields-_-field_type">Тип поля</label>
+            <select id="fields-_-field_type" name="fields-_-field_type">
+                {% for choice in choices %}
+                <option value="{{ choice[0] }}">{{ choice[1] }}</option>
+                {% endfor %}
+            </select>
+
+            <a class="remove" href="#">Удалить</a>
+        </div>
+    </body>
+</html>

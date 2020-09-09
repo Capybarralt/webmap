@@ -1,0 +1,197 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.4.2/css/ol.css" type="text/css">
+        <style>
+            .map_container {
+                height: 60%;
+                width: 30%;
+            }
+            .map {
+                height: 90%;
+                width: 70%;
+                position: absolute;
+                z-index: -1;
+
+            }
+            .editing_form {
+                background-color: #333;
+                width: 30%;
+                vertical-align: top;
+                position: absolute;
+                right: 0;
+                bottom: 0;
+                top: 4%;
+                z-index: 2;
+            }
+            .editing_form label {
+                color: white;
+            }
+            .editing {
+                display:  inline;
+            }
+            .form-inline{
+                position: absolute;
+                z-index: 2;
+            }
+            .mode {
+                position: absolute;
+                left: 0;
+                bottom: 0;
+                z-index: 10;
+            }
+            .table_container {
+                  position: absolute;
+                  background-color: #333;
+                  bottom: 0;
+                  top: 4%;
+                  right: 0;
+                  overflow: auto;
+
+                  width: 30%;
+                  z-index: 3;
+            }
+            .table_dark {
+                  font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+                  font-size: 14px;
+                  width: 95%;
+                  text-align: left;
+                  border-collapse: collapse;
+                  background: #333;
+                  margin: 10px;
+
+                }
+                .table_dark th {
+                  color: #EDB749;
+                  border-bottom: 1px solid #37B5A5;
+                  padding: 12px 17px;
+                }
+                .table_dark td {
+                  color: #CAD4D6;
+                  border-bottom: 1px solid #37B5A5;
+                  border-right:1px solid #37B5A5;
+                  padding: 7px 17px;
+                }
+                .table_dark tr:last-child td {
+                  border-bottom: none;
+                }
+                .table_dark td:last-child {
+                  border-right: none;
+                }
+                .table_dark tr:hover td {
+                  text-decoration: underline;
+                }
+
+            .draw_buttons {
+                position: absolute;
+                display:inline-block;
+                left: 30%;
+            }
+
+            .draw_buttons button {
+                background-color: red;
+                height: 100%;
+            }
+
+            .draw_buttons button {
+                display: inline-block;
+                 font-family: arial,sans-serif;
+                 font-size: 11px;
+                 color: rgb(205,216,228);
+                 text-shadow: 0 -1px rgb(46,53,58);
+                 text-decoration: none;
+                 user-select: none;
+                 line-height: 2em;
+                 padding: 1px 1.2em;
+                 outline: none;
+                 border: 1px solid rgba(33,43,52,1);
+                 border-radius: 3px;
+                 background: rgb(81,92,102) linear-gradient(rgb(81,92,102), rgb(69,78,87));
+                 box-shadow:
+                  inset 0 1px rgba(101,114,126,1),
+                  inset 0 0 1px rgba(140,150,170,.8),
+                  0 1px rgb(83,94,104),
+                  0 0 1px rgb(86,96,106);
+                }
+                .draw_buttons button:active  {
+                    box-shadow:
+                    inset 0 1px 3px rgba(0,10,20,.5),
+                    0 1px rgb(83,94,104),
+                    0 0 1px rgb(86,96,106);
+                }
+                .draw_buttons button:focus:not(:active) {
+                      border: 1px solid rgb(22,32,43);
+                      border-bottom: 1px solid rgb(25,34,45);
+                      background: rgb(53,61,71);
+                      box-shadow:
+                       inset 0 1px 3px rgba(0,10,20,.5),
+                       0 1px rgb(83,94,104),
+                       0 0 1px rgb(86,96,106);
+                      pointer-events: none;
+                }
+
+                .different_buttons {
+                    position: absolute;
+                    bottom: 0;
+                    left: 30%;
+                }
+
+            ul {
+                list-style-type: none;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                background-color: #333;
+            }
+
+            li {
+                float: left;
+            }
+
+            li a {
+                display: block;
+                color: white;
+                text-align: center;
+                padding: 14px 16px;
+                text-decoration: none;
+            }
+
+            /* Измените цвет ссылки на #111 (черный) при наведении */
+            li a:hover {
+                background-color: #111;
+            }
+
+
+        </style>
+        <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.4.2/build/ol.js"></script>
+        <script src="https://yastatic.net/jquery/3.3.1/jquery.min.js"></script>
+        {% if title %}
+        <title>{{ title }} - WebMap</title>
+        {% else %}
+        <title>Добро пожаловать на WebMap</title>
+        {% endif %}
+    </head>
+    <body>
+        <ul>
+            <li><a href="{{ url_for('index') }}">Карта</a></li>
+            <li><a href="{{ url_for('classification') }}">Классификатор</a></li>
+            {% if current_user.is_anonymous %}
+            <li><a href="{{ url_for('login') }}">Вход</a></li>
+            {% else %}
+            <li><a href="{{ url_for('logout') }}">Выход</a></li>
+            {% endif %}
+        </ul>
+
+        <hr>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul>
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </body>
+</html>
